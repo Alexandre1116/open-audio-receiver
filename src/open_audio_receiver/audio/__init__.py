@@ -55,6 +55,16 @@ class AudioEngine(ABC):
     def write(self, pcm_data: bytes) -> None:
         """Feed decoded PCM audio into the output device."""
 
+    def attach_source(self, device_address: str, device_name: str = "") -> None:
+        """Route a newly-connected Bluetooth device's audio to the output device.
+
+        Default is a no-op. Override on platforms where the OS audio stack
+        does not already do this automatically (see ``LinuxAudioEngine``).
+        """
+
+    def detach_source(self, device_address: str) -> None:
+        """Undo :meth:`attach_source` for a device that disconnected."""
+
     @property
     def volume(self) -> float:
         return self._volume

@@ -11,7 +11,6 @@ import os
 import platform
 from dataclasses import dataclass, field, asdict
 from pathlib import Path
-from typing import Optional
 
 
 @dataclass

@@ -51,6 +51,22 @@ python -m open_audio_receiver.main
 3. Audio is received via Bluetooth and played to your chosen output device
 4. Use the system tray icon to control everything
 
+### Platform status
+
+- **Linux:** the app makes the adapter discoverable, registers a BlueZ pairing
+  agent (needs `dbus-python` + `PyGObject`, see Installation) so pairing
+  requests trigger the confirmation pop-up, and tracks device connect/disconnect
+  via D-Bus. BlueZ + PipeWire/WirePlumber decode the incoming A2DP stream
+  automatically; the app routes it to your chosen output device with a
+  `pactl` loopback. If it can't find a matching capture source (naming varies
+  across PipeWire versions), route it manually with `pavucontrol`/`qpwgraph`.
+- **Windows:** pairing confirmation works over BLE advertisements as an MVP
+  proxy, but real A2DP audio playback is **not implemented**. Windows does
+  not expose a public API for a third-party app to register as a Bluetooth
+  A2DP Sink and receive decoded audio — that normally requires a signed
+  Bluetooth profile driver (as bundled with some third-party Bluetooth audio
+  receiver dongles), which is out of scope for an application-level project.
+
 ## Building
 
 ```bash

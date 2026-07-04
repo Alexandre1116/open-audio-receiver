@@ -5,11 +5,11 @@ Main application window — orchestrates all panels and the system tray icon.
 from __future__ import annotations
 
 import logging
-import sys
+from concurrent.futures import Future
 from typing import Optional
 
-from PySide6.QtCore import Qt, QTimer, Slot
-from PySide6.QtGui import QAction, QCloseEvent, QIcon
+from PySide6.QtCore import Signal, Slot
+from PySide6.QtGui import QAction, QCloseEvent
 from PySide6.QtWidgets import (
     QApplication,
     QHBoxLayout,
@@ -22,19 +22,25 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from ..audio import AudioDevice, AudioEngine
+from ..audio import AudioEngine
 from ..bluetooth import BluetoothDevice, BluetoothManager, PairingRequest
-from ..utils import get_platform, is_linux, is_windows, setup_logging
 from ..utils.config import AppConfig
 from .audio_settings import AudioSettingsPanel
 from .device_panel import DevicePanel
-from .theme import DARK_QSS
 
 logger = logging.getLogger(__name__)
+
+# Bluetooth backends fire pairing requests from their own worker thread
+# (a WinRT event thread on Windows, a GLib D-Bus loop on Linux). Qt widgets
+# may only be touched from the GUI thread, so the request is bounced onto it
+# through a queued signal and the answer is handed back via a Future.
+_PAIRING_TIMEOUT_SECONDS = 60.0
 
 
 class MainWindow(QMainWindow):
     """Main window for the Open Audio Receiver."""
+
+    _pairing_requested = Signal(object, object)  # (PairingRequest, Future[bool])
 
     def __init__(self, app: QApplication):
         super().__init__()
@@ -86,6 +92,7 @@ class MainWindow(QMainWindow):
         self.device_panel.unpair_requested.connect(self._on_unpair_request)
         self.audio_settings.output_device_changed.connect(self._on_device_changed)
         self.audio_settings.volume_changed.connect(self._on_volume_changed)
+        self._pairing_requested.connect(self._show_pairing_dialog_on_main_thread)
 
         # ── System tray ────────────────────────────────────
         self._setup_tray()
@@ -147,15 +154,26 @@ class MainWindow(QMainWindow):
         def on_pairing(req: PairingRequest) -> bool:
             if self.audio_settings.auto_accept:
                 return True
-            # Show dialog on the main thread
-            accepted = self.device_panel.show_pairing_dialog(req)
-            return accepted
+            # May be called from a non-GUI thread (WinRT/D-Bus worker) — bounce
+            # the dialog onto the main thread and wait for the answer.
+            future: Future = Future()
+            self._pairing_requested.emit(req, future)
+            try:
+                return future.result(timeout=_PAIRING_TIMEOUT_SECONDS)
+            except Exception:
+                logger.warning("Pairing confirmation for %s timed out or failed", req.address)
+                return False
 
         try:
             self._bt_manager = BluetoothManager.create(on_pairing=on_pairing)
             self._bt_manager.on_device_connected(self._on_device_connected)
             self._bt_manager.on_device_disconnected(self._on_device_disconnected)
-            self._bt_manager.start()
+            self._bt_manager.start(self._config.adapter_address)
+
+            self._audio_engine = AudioEngine.create(self._config.output_device_id)
+            self._audio_engine.volume = self._config.volume
+            self._audio_engine.start()
+
             self._start_btn.setText("⏹  Stop Receiver")
             self._tray_action.setText("⏹ Stop")
             self._update_status("Running", "active")
@@ -176,6 +194,13 @@ class MainWindow(QMainWindow):
         self._update_status("Stopped", "idle")
         logger.info("Receiver stopped")
 
+    @Slot(object, object)
+    def _show_pairing_dialog_on_main_thread(self, req: PairingRequest, future: Future) -> None:
+        try:
+            future.set_result(self.device_panel.show_pairing_dialog(req))
+        except Exception as exc:  # defensive: never let this crash the GUI thread
+            future.set_exception(exc)
+
     # ── Status helper ───────────────────────────────────
 
     def _update_status(self, text: str, state: str = "idle") -> None:
@@ -194,10 +219,14 @@ class MainWindow(QMainWindow):
 
     def _on_device_connected(self, dev: BluetoothDevice) -> None:
         logger.info("Device connected: %s (%s)", dev.name, dev.address)
+        if self._audio_engine:
+            self._audio_engine.attach_source(dev.address, dev.name)
         self._refresh_device_list()
 
     def _on_device_disconnected(self, dev: BluetoothDevice) -> None:
         logger.info("Device disconnected: %s (%s)", dev.name, dev.address)
+        if self._audio_engine:
+            self._audio_engine.detach_source(dev.address)
         self._refresh_device_list()
 
     def _refresh_device_list(self) -> None:
@@ -221,6 +250,14 @@ class MainWindow(QMainWindow):
         self._config.output_device_id = device_id
         self._config.save()
         logger.info("Output device changed to %s", device_id)
+        if self._audio_engine and self._bt_manager:
+            connected = list(self._bt_manager.connected_devices)
+            self._audio_engine.stop()
+            self._audio_engine = AudioEngine.create(device_id)
+            self._audio_engine.volume = self._config.volume
+            self._audio_engine.start()
+            for dev in connected:
+                self._audio_engine.attach_source(dev.address, dev.name)
 
     @Slot(float)
     def _on_volume_changed(self, volume: float) -> None:

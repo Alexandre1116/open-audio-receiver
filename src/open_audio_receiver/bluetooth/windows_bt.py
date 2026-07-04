@@ -18,11 +18,8 @@ from . import BluetoothDevice, BluetoothManager, PairingRequest
 logger = logging.getLogger(__name__)
 
 try:
-    import winrt.windows.devices.bluetooth as bt
     import winrt.windows.devices.bluetooth.advertisement as bta
     import winrt.windows.devices.bluetooth.rfcomm as rfcomm
-    import winrt.windows.storage.streams as streams
-    import winrt.windows.foundation as wf
     from winrt.system import EventHandler
 
     _HAVE_WINRT = True

@@ -74,3 +74,12 @@ class WindowsAudioEngine(AudioEngine):
     def write(self, pcm_data: bytes) -> None:
         # TODO: real WASAPI output via pycaw / ctypes
         pass
+
+    def attach_source(self, device_address: str, device_name: str = "") -> None:
+        logger.warning(
+            "%s connected, but real A2DP audio playback is not implemented on "
+            "Windows yet — Windows does not expose a public API for a third-party "
+            "app to register as a Bluetooth A2DP Sink and receive decoded audio. "
+            "See README for details.",
+            device_name or device_address,
+        )
