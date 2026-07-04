@@ -1,10 +1,11 @@
 PySide6>=6.6.0
 
-# Windows extras (install on Windows)
-pywinrt>=2.0.0
-pycaw>=0.3.0
-comtypes>=1.4.0
+# Windows extras (only installed on Windows)
+pywinrt>=2.0.0; sys_platform == "win32"
+pycaw>=0.3.0; sys_platform == "win32"
+comtypes>=1.4.0; sys_platform == "win32"
 
-# Linux extras (install on Linux)
-# dbus-python>=1.3.0
-# PyGObject>=3.46.0
+# Linux extras (only installed on Linux) — required for pairing pop-ups and
+# device tracking; see LinuxBluetoothManager.
+dbus-python>=1.3.0; sys_platform == "linux"
+PyGObject>=3.46.0; sys_platform == "linux"
