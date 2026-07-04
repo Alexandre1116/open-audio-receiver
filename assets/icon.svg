@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#89b4fa"/>
+      <stop offset="100%" stop-color="#74c7ec"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="24" fill="url(#bg)"/>
+  <!-- Speaker cone -->
+  <path d="M30 48 H44 L60 34 V94 L44 80 H30 Z" fill="#1e1e2e" opacity=".9"/>
+  <!-- Sound waves -->
+  <path d="M72 48 Q80 56 80 64 Q80 72 72 80" fill="none" stroke="#1e1e2e" stroke-width="3.5" stroke-linecap="round" opacity=".8"/>
+  <path d="M82 40 Q94 52 94 64 Q94 76 82 88" fill="none" stroke="#1e1e2e" stroke-width="3.5" stroke-linecap="round" opacity=".6"/>
+  <path d="M92 32 Q108 48 108 64 Q108 80 92 96" fill="none" stroke="#1e1e2e" stroke-width="3.5" stroke-linecap="round" opacity=".4"/>
+  <!-- Bluetooth icon -->
+  <g transform="translate(84, 18) scale(.35)">
+    <path d="M14 2 L6 8 L6 0 Z M14 2 L6 -4" fill="none" stroke="#1e1e2e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>
