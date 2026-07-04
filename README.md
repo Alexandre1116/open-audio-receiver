@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Open Audio Receiver
 
 A cross-platform Bluetooth audio receiver that lets your PC act as a Bluetooth
@@ -62,3 +63,7 @@ pyinstaller --onefile --windowed src/open_audio_receiver/main.py
 ## License
 
 MIT
+=======
+# open-audio-receiver
+A simple and open sorce audio reciver
+>>>>>>> origin/main
