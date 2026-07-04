@@ -16,6 +16,7 @@ from PySide6.QtWidgets import (
     QLabel,
     QMainWindow,
     QPushButton,
+    QStyle,
     QSystemTrayIcon,
     QVBoxLayout,
     QWidget,
@@ -99,7 +100,7 @@ class MainWindow(QMainWindow):
     def _setup_tray(self) -> None:
         self._tray_icon = QSystemTrayIcon(self)
         # Built-in icon as fallback; custom icon can be set later
-        self._tray_icon.setIcon(self.style().standardIcon(self.style().SP_MediaPlay))
+        self._tray_icon.setIcon(self.style().standardIcon(QStyle.SP_MediaPlay))
         self._tray_icon.setToolTip("Open Audio Receiver")
 
         from PySide6.QtWidgets import QMenu

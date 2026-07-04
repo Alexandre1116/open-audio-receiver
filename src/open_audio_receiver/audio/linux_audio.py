@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+import json
 import logging
-import subprocess
 import re
+import subprocess
 
 from . import AudioDevice, AudioEngine
 
@@ -20,8 +21,6 @@ def enumerate_devices() -> list[AudioDevice]:
             timeout=5,
             text=True,
         )
-        import json
-
         sinks = json.loads(raw)
     except (FileNotFoundError, subprocess.TimeoutExpired, json.JSONDecodeError):
         # Fallback: parse plain-text output
