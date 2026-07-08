@@ -10,6 +10,8 @@ speaker — receive audio from smartphones, tablets, or other computers.
 - 🎚️ **Audio output selection** — Choose your speakers, headphones, etc.
 - 🔔 **Pairing confirmation** — Pop‑up request for each new device
 - 🎨 **Modern dark GUI** — Built with PySide6
+- ⌨️ **Keyboard shortcuts** — Ctrl+Q to quit, Ctrl+R to refresh, Space to toggle
+- ℹ️ **About dialog** with version and license info
 
 ## Installation
 
@@ -80,6 +82,11 @@ Windows, `open-audio-receiver` on Linux). Building on Linux produces a Linux bin
 and building on Windows produces a Windows `.exe` — PyInstaller does not cross-compile,
 so run it on the target OS.
 
+## Security
+
+See [SECURITY.md](SECURITY.md) for reporting vulnerabilities and contributor
+guidance.
+
 ## License
 
-MIT
+GPL-3.0
