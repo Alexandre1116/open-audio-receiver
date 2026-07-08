@@ -2,17 +2,10 @@
 
 from __future__ import annotations
 
-import platform
-import wave
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from pathlib import Path
-from typing import Optional
 
 from ..utils import is_windows
-
-
-# ── Data types ──────────────────────────────────────────────────────────────
 
 
 @dataclass
@@ -26,15 +19,8 @@ class AudioDevice:
     sample_rate: int = 48000
 
 
-# ── Abstract engine ─────────────────────────────────────────────────────────
-
-
 class AudioEngine(ABC):
-    """Plays incoming A2DP audio streams.
-
-    One engine instance is created per connected device.  Subclasses
-    implement the platform-specific playback loop.
-    """
+    """Plays incoming A2DP audio streams."""
 
     def __init__(self, device_id: str, sample_rate: int = 48000, channels: int = 2):
         self.device_id = device_id
@@ -56,11 +42,7 @@ class AudioEngine(ABC):
         """Feed decoded PCM audio into the output device."""
 
     def attach_source(self, device_address: str, device_name: str = "") -> None:
-        """Route a newly-connected Bluetooth device's audio to the output device.
-
-        Default is a no-op. Override on platforms where the OS audio stack
-        does not already do this automatically (see ``LinuxAudioEngine``).
-        """
+        """Route a newly-connected Bluetooth device's audio to the output device."""
 
     def detach_source(self, device_address: str) -> None:
         """Undo :meth:`attach_source` for a device that disconnected."""
@@ -73,17 +55,13 @@ class AudioEngine(ABC):
     def volume(self, val: float) -> None:
         self._volume = max(0.0, min(1.0, val))
 
-    # ── factory ──────────────────────────────────────────────────────────
-
     @staticmethod
     def create(device_id: str = "default") -> "AudioEngine":
         """Return the right engine for the current platform."""
         if is_windows():
             from .windows_audio import WindowsAudioEngine
-
             return WindowsAudioEngine(device_id)
         from .linux_audio import LinuxAudioEngine
-
         return LinuxAudioEngine(device_id)
 
     @staticmethod
@@ -91,18 +69,13 @@ class AudioEngine(ABC):
         """Enumerate available audio output devices."""
         if is_windows():
             from .windows_audio import enumerate_devices
-
             return enumerate_devices()
         from .linux_audio import enumerate_devices
-
         return enumerate_devices()
 
 
-# ── Dummy engine (fallback) ─────────────────────────────────────────────────
-
-
 class DummyAudioEngine(AudioEngine):
-    """Silently discards audio.  Used when no real engine is available."""
+    """Silently discards audio. Used when no real engine is available."""
 
     def start(self) -> None:
         pass
