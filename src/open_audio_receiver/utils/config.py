@@ -24,7 +24,7 @@ class AppConfig:
 
     # Bluetooth
     auto_accept_pairing: bool = False
-    adapter_address: str = ""  # empty = first adapter
+    adapter_address: str = ""
 
     # Window
     window_width: int = 600
@@ -35,7 +35,7 @@ class AppConfig:
     # Theme
     dark_mode: bool = True
 
-    # Known devices — dict[address, friendly_name]
+    # Known devices
     known_devices: dict[str, str] = field(default_factory=dict)
 
     @classmethod
@@ -59,6 +59,14 @@ class AppConfig:
             return cls()
         try:
             data = json.loads(path.read_text(encoding="utf-8"))
+            # Safety: clamp/validate critical values
+            data["volume"] = max(0.0, min(1.0, float(data.get("volume", 1.0))))
+            data["window_width"] = max(400, min(4096, int(data.get("window_width", 600))))
+            data["window_height"] = max(300, min(4096, int(data.get("window_height", 500))))
+            valid_codecs = {"auto", "SBC", "AAC", "aptX", "LDAC"}
+            codec = data.get("codec_preference", "auto")
+            if codec not in valid_codecs:
+                data["codec_preference"] = "auto"
             return cls(**data)
         except (json.JSONDecodeError, TypeError, ValueError):
             return cls()
