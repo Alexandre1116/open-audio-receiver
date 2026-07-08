@@ -7,7 +7,7 @@ name = "open-audio-receiver"
 version = "0.1.0"
 description = "Bluetooth audio receiver for Windows and Linux with A2DP Sink support"
 readme = "README.md"
-license = {text = "MIT"}
+license = {text = "GPL-3.0"}
 authors = [{name = "Alexandre Ramos", email = "alexandremarquesramos11@gmail.com"}]
 requires-python = ">=3.10"
 dependencies = [
